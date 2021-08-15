@@ -18,7 +18,6 @@ class MessageView(APIView):
     def post(self, request):
         serializer = MessageSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-#        print(serializer.data)
         instance = serializer.data
         instance['MC2_timestamp'] = str(timezone.now())
         response = requests.post('http://web2:8002/messages/', data=instance)

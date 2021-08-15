@@ -17,10 +17,8 @@ class MessageView(APIView):
     def post(self, request):
         serializer = MessageSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-#        print(serializer.data)
         instance = serializer.data
         instance['MC3_timestamp'] = str(timezone.now())
         serializer1 = MessageSerializer(data=instance)
         serializer1.is_valid(raise_exception=True)
-#        print(serializer1.data)
         return Response(serializer1.data, status=status.HTTP_200_OK)

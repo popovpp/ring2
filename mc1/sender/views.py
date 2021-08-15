@@ -36,16 +36,11 @@ def message_session(START_TIME=None, DURATION=None, SESSION_ID=None):
                            'end_timestamp':None}
             serializer = MessageSerializer(new_message)
             response = requests.post('http://web1:8001/messages/', data=serializer.data)
-#            print(response.json())
             instance = response.json()
             instance['end_timestamp'] = str(timezone.now())
             serializer = MessageSerializer(data=instance)
             serializer.is_valid(raise_exception=True)
             serializer.save()
-#            t2 = threading.Thread(target=serializer.save, 
-#                                  args=(), 
-#                                  daemon=True)
-#            t2.start()
     count_str = str(Message.objects.filter(session_id=SESSION_ID).count())
     print('Длительность сеанса:', (timezone.now()-START_TIME).seconds, 'секунд')
     print('Количество сообщений:', count_str)

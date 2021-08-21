@@ -1,4 +1,4 @@
-#The prototipe of microservice application made by djangorestframework.<br>
+<h1>The prototipe of microservice application made by djangorestframework.</h1><br>
 Three microservices send each other POST with message. Each microservice add timestamp to the message. The message go by ring. First microservice inits sending and save to database the message from last microsevice.
 You need to have docker and docker-compose (I used docker v.19.03.14 and docker-compose v.3)
 To run application you need to do next steps:<br>

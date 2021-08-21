@@ -34,8 +34,8 @@ def message_session(START_TIME=None, DURATION=None, SESSION_ID=None):
             serializer.is_valid(raise_exception=True)
             serializer.save()
     count_str = str(Message.objects.filter(session_id=SESSION_ID).count())
-    print('Длительность сеанса:', (timezone.now()-START_TIME).seconds, 'секунд')
-    print('Количество сообщений:', count_str)
+    print('Session duration:', (timezone.now()-START_TIME).seconds, 'seconds')
+    print('Count of messages:', count_str)
 
 
 class MessageViewSet(ModelViewSet):

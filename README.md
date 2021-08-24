@@ -5,8 +5,12 @@ To run application you need to do next steps:<br>
 1) do clone of repository https://github.com/popovpp/ring2.git;<br>
 2) do migrate by command in the root folder of project (there is docker-compose.yml here):<br>
 docker-compose run web python manage.py migrate<br>
+docker-compose run web1 python manage.py migrate<br>
+docker-compose run web2 python manage.py migrate<br>
 3) create superuser by:<br>
 docker-compose run web python manage.py superuser<br>
+docker-compose run web1 python manage.py superuser<br>
+docker-compose run web2 python manage.py superuser<br>
 4) in the root folder of project run:<br>
 docker-compose up<br>
 5) in the address bar your browser enter:<br>

@@ -77,6 +77,8 @@ services:
       - ./mc3:/code/
     ports:
       - "8002:8002"
+    depends_on:
+      - redis
     environment:
       SECRET_KEY: bigsecretkey
       DJANGO_CONFIGURATION: Develop

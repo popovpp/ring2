@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'corsheaders',
+    'channels',
 
     'sender',
 ]
@@ -76,6 +77,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'mc3.wsgi.application'
+
+ASGI_APPLICATION = "mc3.asgi.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
 
 
 # Database

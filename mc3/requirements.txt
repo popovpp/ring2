@@ -6,3 +6,6 @@ sqlparse==0.4.1
 djangorestframework==3.12.4
 requests==2.26.0
 django-cors-headers==3.7.0
+channels==3.0.4
+channels-redis==3.3.0
+websockets==9.1

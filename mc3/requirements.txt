@@ -9,3 +9,4 @@ django-cors-headers==3.7.0
 channels==3.0.4
 channels-redis==3.3.0
 websockets==9.1
+confluent-kafka==1.7.0

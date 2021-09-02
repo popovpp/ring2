@@ -24,6 +24,9 @@ running = True
 SESSION_ID = 1
 START_TIME = None
 DURATION = None
+consumer = None
+producer = None
+start = False
 
 
 def message_session(START_TIME=None, DURATION=None, SESSION_ID=None):
@@ -123,11 +126,18 @@ class MessageViewSet(ModelViewSet):
         except Exception as e:
             SESSION_ID = 0
         
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        result = loop.run_until_complete(
-            new_kafka_message(START_TIME=START_TIME, DURATION=DURATION, SESSION_ID=SESSION_ID)
-        ) 
+#        loop = asyncio.new_event_loop()
+#        asyncio.set_event_loop(loop)
+#        result = loop.run_until_complete(
+#            new_kafka_message(START_TIME=START_TIME, DURATION=DURATION, SESSION_ID=SESSION_ID)
+#        ) 
+#        start = True
+        
+#        t1 = threading.Thread(target=basic_consume_loop,  
+#                              daemon=True)
+#        t1.start()
+        basic_consume_loop()
+
         return Response('START ' + str(timezone.now()), status=status.HTTP_200_OK)
 
     @action(methods=['GET'], detail=False, url_path="stop", 
@@ -138,19 +148,37 @@ class MessageViewSet(ModelViewSet):
         return Response('STOP ' + str(timezone.now()), status=status.HTTP_200_OK)
 
 
-async def basic_consume_loop():
+def basic_consume_loop():
     global running
     global producer
     global SESSION_ID
     global START_TIME
     global DURATION
+    global consumer
+    global start
+    
+    print('#############################3')
 
     conf_cons = {'bootstrap.servers': "kafka:9092",
         'group.id': "foo",
         'auto.offset.reset': 'smallest'}
     consumer = Consumer(conf_cons)
+
+    conf1 = {'bootstrap.servers': "kafka:9092",
+            'client.id': socket.gethostname()}
+    producer = Producer(conf1)
+
     try:
         consumer.subscribe(['mc3_mc1',])
+        new_message = {'session_id': SESSION_ID,
+                       'MC1_timestamp':str(timezone.now()),
+                       'MC2_timestamp':None, 
+                       'MC3_timestamp':None,
+                       'end_timestamp':None}
+        serializer = MessageSerializer(new_message)
+        producer.produce('mc1_mc2', key="mc1", value=json.dumps(serializer.data), 
+                     callback=acked)
+        producer.poll(0.1)
 
         while running:
             msg = consumer.poll(timeout=1.0)
@@ -164,26 +192,31 @@ async def basic_consume_loop():
                 elif msg.error():
                     raise KafkaException(msg.error())
             else:
-                print(msg.value())
+ #               print(msg.value())
                 message = msg.value()
                 message = json.loads(message.decode('utf-8'))
                 message['end_timestamp'] = str(timezone.now())
                 print(message)
-                message_instance = await save_message_db(message=message)
+                serializer = MessageSerializer(data=message)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+#                message_instance = await save_message_db(message=message)
                 try:
-                    1/(views.DURATION - (timezone.now()-views.START_TIME).seconds)
-                    new_message = {'session_id': views.SESSION_ID,
+                    1/(DURATION - (timezone.now()-START_TIME).seconds)
+                    new_message = {'session_id': SESSION_ID,
                                    'MC1_timestamp':str(timezone.now()),
                                    'MC2_timestamp':None, 
                                    'MC3_timestamp':None,
                                    'end_timestamp':None}
+                    serializer = MessageSerializer(new_message)
                     producer.produce('mc1_mc2', key="mc1", value=json.dumps(serializer.data), 
                                  callback=acked)
-                    producer.poll(1)
+#                    producer.poll(0.1)
+#                    producer.flush()
                 except Exception as e:
                     print('STOP', timezone.now())
                     print('Session duration:', (timezone.now()-START_TIME).seconds, 'seconds')
-                    print('Count of messages:', await get_messages_count())
+                    print('Count of messages:', str(Message.objects.filter(session_id=SESSION_ID).count()))
                     shutdown()
 
                 
@@ -195,11 +228,5 @@ def shutdown():
     global running
     running = False
 
-
-#loop1 = asyncio.new_event_loop()
-#asyncio.set_event_loop(loop1)
-#result = loop1.run_until_complete(basic_consume_loop())
-
-
-#time.sleep(10)
+#time.sleep(15)
 #basic_consume_loop()

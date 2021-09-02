@@ -61,11 +61,11 @@ def basic_consume_loop():
                 message = msg.value()
                 message = json.loads(message.decode('utf-8'))
                 message['MC2_timestamp'] = str(timezone.now())
-                print(message)
+#                print(message)
                 serializer = MessageSerializer(message)
                 producer.produce('mc2_mc3', key="mc2", value=json.dumps(serializer.data), 
                                  callback=acked)
-                producer.poll(2)
+#                producer.poll(0.1)
     finally:
         # Close down consumer to commit final offsets.
         consumer.close()

@@ -23,28 +23,8 @@ START_TIME = None
 DURATION = None
 
 
-def message_session(START_TIME=None, DURATION=None, SESSION_ID=None):
-    while (timezone.now()-START_TIME).seconds < DURATION:
-            new_message = {'session_id': SESSION_ID,
-                           'MC1_timestamp':str(timezone.now()),
-                           'MC2_timestamp':None, 
-                           'MC3_timestamp':None,
-                           'end_timestamp':None}
-            serializer = MessageSerializer(new_message)
-            response = requests.post('http://web1:8001/messages/', data=serializer.data)
-            instance = response.json()
-            instance['end_timestamp'] = str(timezone.now())
-            serializer = MessageSerializer(data=instance)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-    count_str = str(Message.objects.filter(session_id=SESSION_ID).count())
-    print('Session duration:', (timezone.now()-START_TIME).seconds, 'seconds')
-    print('Count of messages:', count_str)
-
-
 async def new_ws_message(START_TIME=None, DURATION=None, SESSION_ID=None):
     print(START_TIME, DURATION, SESSION_ID)
-#    while (timezone.now()-START_TIME).seconds < DURATION:
     new_message = {'session_id': SESSION_ID,
                    'MC1_timestamp':str(timezone.now()),
                    'MC2_timestamp':None, 
@@ -55,10 +35,6 @@ async def new_ws_message(START_TIME=None, DURATION=None, SESSION_ID=None):
     async with websockets.connect(uri) as websocket:
         await websocket.send(json.dumps({'message':serializer.data}))
             
-#    count_str = 'qqq'#str(Message.objects.filter(session_id=SESSION_ID).count())
-#    print('Session duration:', (timezone.now()-START_TIME).seconds, 'seconds')
-#    print('Count of messages:', count_str)
-
 
 class MessageViewSet(ModelViewSet):
     permission_classes = [AllowAny]
@@ -90,10 +66,3 @@ class MessageViewSet(ModelViewSet):
             new_ws_message(START_TIME=START_TIME, DURATION=DURATION, SESSION_ID=SESSION_ID)
         )       
         return Response('START ' + str(timezone.now()), status=status.HTTP_200_OK)
-
-    @action(methods=['GET'], detail=False, url_path="stop", 
-            url_name="stop",
-            permission_classes=[AllowAny])
-    def stop(self, request, **kwargs):
-        print('STOP', timezone.now())  
-        return Response('STOP ' + str(timezone.now()), status=status.HTTP_200_OK)

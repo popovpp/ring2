@@ -16,9 +16,6 @@ from sender.serializers import MessageSerializer
 from sender.models import Message
 
 
-SESSION_ID = 1
-
-
 def message_session(START_TIME=None, DURATION=None, SESSION_ID=None):
     while (timezone.now()-START_TIME).seconds < DURATION:
             new_message = {'session_id': SESSION_ID,

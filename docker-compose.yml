@@ -13,7 +13,7 @@ services:
       - "9092:9092"
     hostname: kafka
     environment:
-#      KAFKA_CREATE_TOPICS: "UploadFile:1:1,GetFile:1:1,TrackUpload:1:1,GetEmailContent:1:1" # topic:partition:replicas
+      KAFKA_CREATE_TOPICS: "mc1-mc2:1:1,mc2-mc3:1:1,mc3-mc1:1:1" # topic:partition:replicas
       KAFKA_ADVERTISED_HOST_NAME: kafka # docker-machine ip
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_PORT: 9092

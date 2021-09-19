@@ -13,7 +13,7 @@ services:
       - "9092:9092"
     hostname: kafka
     environment:
-      KAFKA_CREATE_TOPICS: "mc1-mc2:1:1,mc2-mc3:1:1,mc3-mc1:1:1" # topic:partition:replicas
+#      KAFKA_CREATE_TOPICS: "mc1-mc2_1:1:1,mc2-mc3_1:1:1,mc3-mc1_1:1:1" # topic:partition:replicas
       KAFKA_ADVERTISED_HOST_NAME: kafka # docker-machine ip
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_PORT: 9092
@@ -21,19 +21,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - "zookeeper"
-  jaeger:
-    image: jaegertracing/all-in-one:1.10
-    ports: 
-      - "5775:5775"
-      - "6831:6831"
-      - "6832:6832"
-      - "5778:5778" 
-      - "16686:16686" 
-      - "14268:14268" 
-      - "14250:14250" 
-      - "9411:9411" 
-    environment:
-      COLLECTOR_ZIPKIN_HOST_PORT: 9411
   redis:
     image: redis
     ports:
@@ -83,5 +70,16 @@ services:
       SECRET_KEY: bigsecretkey
       DJANGO_CONFIGURATION: Develop
       DJANGO_SETTINGS_MODULE:
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+      - KAFKA_CLUSTERS_0_READONLY=false
 volumes:
   pgdata:

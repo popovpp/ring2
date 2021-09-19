@@ -43,7 +43,6 @@ class MessageViewSet(ModelViewSet):
             DURATION = 10
         try:
             SESSION_ID = Message.objects.latest('id').session_id + 1
-            print(SESSION_ID)
         except Exception as e:
             SESSION_ID = 0
         basic_consume_loop(START_TIME, DURATION, SESSION_ID)
@@ -53,11 +52,10 @@ class MessageViewSet(ModelViewSet):
 
 def basic_consume_loop(START_TIME, DURATION, SESSION_ID):
     
-    print('#############################3')
-    print(SESSION_ID)
+    print('#############################')
 
     conf_cons = {'bootstrap.servers': "kafka:9092",
-        'group.id': "foo",
+        'group.id': "foo1",
         'auto.offset.reset': 'smallest'}
     consumer = Consumer(conf_cons)
 
@@ -66,24 +64,36 @@ def basic_consume_loop(START_TIME, DURATION, SESSION_ID):
     producer = Producer(conf1)
 
     try:
-        consumer.subscribe(['mc3_mc1',])
+        consumer.subscribe(['mc3-mc1_1',])
         new_message = {'session_id': SESSION_ID,
                        'MC1_timestamp':str(timezone.now()),
                        'MC2_timestamp':None, 
                        'MC3_timestamp':None,
                        'end_timestamp':None}
         serializer = MessageSerializer(new_message)
-        producer.produce('mc1_mc2', key="mc1", value=json.dumps(serializer.data), 
+        producer.produce('mc1-mc2_1', key="mc1", value=json.dumps(serializer.data), 
                      callback=acked)
-        producer.flush()
+        producer.poll(1)
 
         running = True
+        count_of_messages = 0
+        count_of_loop = 0
 
         while running:
             msg = consumer.poll(timeout=1.0)
+            count_of_loop += 1
+#            print('loop', count_of_loop)
+            try: 
+                1/(count_of_loop - 5)
+            except Exception as e:
+                print('STOP', timezone.now())
+                print('Session duration:', (timezone.now()-START_TIME).seconds - 5, 'seconds')
+                print('Count of messages:', str(Message.objects.filter(session_id=SESSION_ID).count()))
+                running = False
             if msg is None: continue
-
+            count_of_loop = 0
             if msg.error():
+                pass
                 if msg.error().code() == KafkaError._PARTITION_EOF:
                     # End of partition event
                     sys.stderr.write('%% %s [%d] reached end at offset %d\n' %
@@ -97,6 +107,7 @@ def basic_consume_loop(START_TIME, DURATION, SESSION_ID):
                 print(message)
                 serializer = MessageSerializer(data=message)
                 serializer.is_valid(raise_exception=True)
+
                 serializer.save()
 
                 try:
@@ -107,15 +118,12 @@ def basic_consume_loop(START_TIME, DURATION, SESSION_ID):
                                    'MC3_timestamp':None,
                                    'end_timestamp':None}
                     serializer = MessageSerializer(new_message)
-                    producer.produce('mc1_mc2', key="mc1", value=json.dumps(serializer.data), 
+                    producer.produce('mc1-mc2_1', key="mc1", value=json.dumps(serializer.data), 
                                  callback=acked)
-                    producer.flush()
+                    producer.poll(1)
                 except Exception as e:
-                    print('STOP', timezone.now())
-                    print('Session duration:', (timezone.now()-START_TIME).seconds, 'seconds')
-                    print('Count of messages:', str(Message.objects.filter(session_id=SESSION_ID).count()))
-                    running = False
-
+                    pass
+                    print('no_produced')
                 
     finally:
         # Close down consumer to commit final offsets.

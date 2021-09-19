@@ -1,9 +1,17 @@
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import AllowAny
 from django.utils import timezone
-import json
 import time
+import json
+import socket
 from confluent_kafka import Consumer, Producer, KafkaError, KafkaException
 
 from sender.serializers import MessageSerializer
+
+
+class MessageViewSet(ModelViewSet):
+    permission_classes = [AllowAny]
+    serializer_class = MessageSerializer
 
 
 def acked(err, msg):
@@ -11,20 +19,18 @@ def acked(err, msg):
 
 
 def basic_consume_loop():
-    global running
-    global producer
 
     running = True
     conf_prod = {'bootstrap.servers': "kafka:9092",
             'client.id': socket.gethostname()}
     producer = Producer(conf_prod)
     conf_cons = {'bootstrap.servers': "kafka:9092",
-        'group.id': "foo",
+        'group.id': "foo3",
         'auto.offset.reset': 'smallest'}
     consumer = Consumer(conf_cons)
     try:
-        consumer.subscribe(['mc2_mc3',])
-
+        consumer.subscribe(['mc2-mc3_1',])
+        print('mc3 is ready.')
         while running:
             msg = consumer.poll(timeout=1.0)
             if msg is None: continue
@@ -41,14 +47,14 @@ def basic_consume_loop():
                 message = json.loads(message.decode('utf-8'))
                 message['MC3_timestamp'] = str(timezone.now())
                 serializer = MessageSerializer(message)
-                producer.produce('mc3_mc1', key="mc3", value=json.dumps(serializer.data), 
+                producer.produce('mc3-mc1_1', key="mc3", value=json.dumps(serializer.data), 
                                  callback=acked)
-                producer.flush()
+                producer.poll(1)
 
     finally:
         # Close down consumer to commit final offsets.
         consumer.close()
 
 
-time.sleep(20)
+time.sleep(10)
 basic_consume_loop()

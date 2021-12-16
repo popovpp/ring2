@@ -40,4 +40,4 @@ web_1        | Session duration: 2 seconds<br>
 web_1        | Count of messages: 36<br>
 
 This application may to use for meseuring transmission speed your environment of microservices.<br>
-Further I will make the ring with WebSocket and Kafka channels (I mean the exchange messages by Kafka broker), and to make traicing by Jaeger.<br>
+
